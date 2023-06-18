@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "name": "Brainstorming",
+    "about": "Brainstorming brings team member's diverse experience into play",
+    "comments": 12,
+    "files": 0,
+    "state": "Low",
+    "option": false
+  },
+  {
+    "id": 2,
+    "name": "Research",
+    "about": "Use Reserch helps you to create an optimal product for users",
+    "comments": 10,
+    "files": 3,
+    "state": "High",
+    "option": false
+  },
+  {
+    "id": 3,
+    "name": "Wireframes",
+    "about": "Low fidelity wireframes includes the most basic content and visuals",
+    "comments": 16,
+    "files": 3,
+    "state": "High",
+    "option": false
+  }
+]
