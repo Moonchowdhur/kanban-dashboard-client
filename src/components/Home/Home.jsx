@@ -16,6 +16,7 @@ import { TbGridDots } from "react-icons/tb";
 import Profile from "../Profile/Profile";
 import Avatar from "../Avatar/Avatar";
 import Card from "../Card/Card";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 const Home = () => {
   const [todo, setTodo] = useState([]);
@@ -41,6 +42,75 @@ const Home = () => {
   }, []);
 
   console.log(donee);
+
+  const handleDragEnd = (result) => {
+    // Check if the item was dropped outside a droppable area
+    if (!result.destination) {
+      return;
+    }
+
+    // Reorder the items based on the drag and drop result
+    const { source, destination } = result;
+
+    if (source.droppableId === destination.droppableId) {
+      // Reorder within the same droppable area
+      if (source.droppableId === "todo") {
+        const reorderedItems = Array.from(todo);
+        const [reorderedItem] = reorderedItems.splice(source.index, 1);
+        reorderedItems.splice(destination.index, 0, reorderedItem);
+        setTodo(reorderedItems);
+      } else if (source.droppableId === "progress") {
+        const reorderedItems = Array.from(progress);
+        const [reorderedItem] = reorderedItems.splice(source.index, 1);
+        reorderedItems.splice(destination.index, 0, reorderedItem);
+        setProgress(reorderedItems);
+      } else if (source.droppableId === "done") {
+        const reorderedItems = Array.from(donee);
+        const [reorderedItem] = reorderedItems.splice(source.index, 1);
+        reorderedItems.splice(destination.index, 0, reorderedItem);
+        setDonee(reorderedItems);
+      }
+    } else {
+      // Move the item between droppable areas
+      if (
+        source.droppableId === "todo" &&
+        destination.droppableId === "progress"
+      ) {
+        const [movedItem] = todo.splice(source.index, 1);
+        const newProgress = Array.from(progress);
+        newProgress.splice(destination.index, 0, movedItem);
+        setTodo(todo);
+        setProgress(newProgress);
+      } else if (
+        source.droppableId === "progress" &&
+        destination.droppableId === "todo"
+      ) {
+        const [movedItem] = progress.splice(source.index, 1);
+        const newTodo = Array.from(todo);
+        newTodo.splice(destination.index, 0, movedItem);
+        setProgress(progress);
+        setTodo(newTodo);
+      } else if (
+        source.droppableId === "progress" &&
+        destination.droppableId === "done"
+      ) {
+        const [movedItem] = progress.splice(source.index, 1);
+        const newDone = Array.from(donee);
+        newDone.splice(destination.index, 0, movedItem);
+        setProgress(progress);
+        setDonee(newDone);
+      } else if (
+        source.droppableId === "done" &&
+        destination.droppableId === "progress"
+      ) {
+        const [movedItem] = donee.splice(source.index, 1);
+        const newProgress = Array.from(progress);
+        newProgress.splice(destination.index, 0, movedItem);
+        setDonee(donee);
+        setProgress(newProgress);
+      }
+    }
+  };
 
   return (
     <div className="w-full h-full p-2">
@@ -109,66 +179,128 @@ const Home = () => {
         </div>
       </div>
       {/* card */}
-
-      <div className="md:flex gap-5 ">
-        {/* todo */}
-        <div className="bg-[#EEEEEE] rounded-xl gap-4">
-          <div className="flex my-4 mx-3 items-center justify-between">
-            <div className="flex items-center mt-4 md:mt-0 gap-4">
-              <FaBowlingBall className="text-blue-300 text-xs" />
-              <h2 className="font-bold ">To Do</h2>
-              <p className=" px-2 py-1 w-7 h-7 bg-slate-200 rounded-full">4</p>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="md:flex gap-5">
+          {/* todo */}
+          <div className="bg-[#EEEEEE] rounded-xl gap-4">
+            <div className="flex my-4 mx-3 items-center justify-between">
+              <div className="flex items-center mt-4 md:mt-0 gap-4">
+                <FaBowlingBall className="text-blue-300 text-xs" />
+                <h2 className="font-bold ">To Do</h2>
+                <p className="px-2 py-1 w-7 h-7 bg-slate-200 rounded-full">4</p>
+              </div>
+              <AiOutlinePlusSquare className="text-violet-700 bg-violet-300 text-xl rounded" />
             </div>
-            <AiOutlinePlusSquare className="text-violet-700 bg-violet-300 text-xl rounded" />
+            <div className="w-full my-4 border-2 border-violet-500"></div>
+            <Droppable droppableId="todo">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps}>
+                  {todo.map((eachcard, index) => (
+                    <Draggable
+                      key={eachcard.id}
+                      draggableId={eachcard.id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <Card
+                            key={eachcard.id}
+                            aboutp="todoabout"
+                            eachcard={eachcard}
+                          ></Card>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
           </div>
-          <div className=" w-full my-4 border-2 border-violet-500"></div>
-          <div className="pb-5">
-            {todo.map((eachcard) => (
-              <Card
-                key={eachcard.id}
-                aboutp={"todoabout"}
-                eachcard={eachcard}
-              ></Card>
-            ))}
+          {/* On progress */}
+          <div className="bg-[#EEEEEE]  rounded-xl">
+            <div className="flex my-4 mx-3 items-center justify-between">
+              <div className="flex items-center gap-4 mt-4 md:mt-0">
+                <FaBowlingBall className="text-orange-400 text-xs" />
+                <h2 className="font-bold  ">On progress</h2>
+                <p className="px-2 py-1 w-7 h-7 bg-slate-200 rounded-full">3</p>
+              </div>
+            </div>
+            <div className="w-full my-4 border-2 border-orange-400"></div>
+            <Droppable droppableId="progress">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps}>
+                  {progress.map((eachcard, index) => (
+                    <Draggable
+                      key={eachcard.id}
+                      draggableId={eachcard.id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <Card
+                            key={eachcard.id}
+                            title="onprogress"
+                            eachcard={eachcard}
+                          ></Card>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </div>
+          {/* done*/}
+          <div className="bg-[#EEEEEE]  rounded-xl ">
+            <div className="flex my-4 mx-3 items-center justify-between">
+              <div className="flex items-center gap-4 mt-4 md:mt-0">
+                <FaBowlingBall className="text-green-400 text-xs" />
+                <h2 className="font-bold ">Done</h2>
+                <p className="px-2 py-1 w-7 h-7 bg-slate-200 rounded-full">2</p>
+              </div>
+            </div>
+            <div className="w-full my-4 border-2 border-green-400"></div>
+            <Droppable droppableId="done">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps}>
+                  {donee.map((eachcard, index) => (
+                    <Draggable
+                      key={eachcard.id}
+                      draggableId={eachcard.id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <Card
+                            key={eachcard.id}
+                            title="done"
+                            eachcard={eachcard}
+                          ></Card>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
           </div>
         </div>
-        {/* On progress */}
-        <div className="bg-[#EEEEEE]  rounded-xl">
-          <div className="flex my-4 mx-3 items-center justify-between">
-            <div className="flex items-center gap-4 mt-4 md:mt-0">
-              <FaBowlingBall className="text-orange-400 text-xs" />
-              <h2 className="font-bold  ">On progress</h2>
-              <p className=" px-2 py-1 w-7 h-7 bg-slate-200 rounded-full">3</p>
-            </div>
-          </div>
-          <div className=" w-full my-4 border-2 border-orange-400"></div>
-          <div className="pb-5">
-            {progress.map((eachcard) => (
-              <Card
-                key={eachcard.id}
-                title={"onprogress"}
-                eachcard={eachcard}
-              ></Card>
-            ))}
-          </div>
-        </div>
-        {/* done*/}
-        <div className="bg-[#EEEEEE]  rounded-xl ">
-          <div className="flex my-4 mx-3 items-center justify-between">
-            <div className="flex items-center gap-4 mt-4 md:mt-0">
-              <FaBowlingBall className="text-green-400 text-xs" />
-              <h2 className="font-bold ">Done</h2>
-              <p className=" px-2 py-1 w-7 h-7 bg-slate-200 rounded-full">2</p>
-            </div>
-          </div>
-          <div className=" w-full my-4 border-2 border-green-400"></div>
-          <div className="pb-5">
-            {donee.map((eachcard) => (
-              <Card key={eachcard.id} title={"done"} eachcard={eachcard}></Card>
-            ))}
-          </div>
-        </div>
-      </div>
+      </DragDropContext>
     </div>
   );
 };
